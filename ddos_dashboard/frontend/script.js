@@ -18,21 +18,22 @@ async function fetchAttacks() {
         const response = await fetch('http://localhost:8000/attacks/top');
         const data = await response.json();
 
+        // Show demo badge if mock data is used
+        if (data.is_mock) {
+            document.getElementById('demo-badge').style.display = 'inline-block';
+        } else {
+            document.getElementById('demo-badge').style.display = 'none';
+        }
+
         // Transform Cloudflare data to Globe format
         // Cloudflare Radar returns top origin/target pairs
         const attacks = data.result?.top_0 || [];
 
         const countryCoords = {
-            'US': [37.0902, -95.7129],
-            'CN': [35.8617, 104.1954],
-            'RU': [61.5240, 105.3188],
-            'BR': [-14.2350, -51.9253],
-            'IN': [20.5937, 78.9629],
-            'GB': [55.3781, -3.4360],
-            'DE': [51.1657, 10.4515],
-            'FR': [46.2276, 2.2137],
-            'JP': [36.2048, 138.2529],
-            'AU': [-25.2744, 133.7751]
+            'US': [37.09, -95.71], 'CN': [35.86, 104.19], 'RU': [61.52, 105.31], 'BR': [-14.23, -51.92],
+            'IN': [20.59, 78.96], 'GB': [55.37, -3.43], 'DE': [51.16, 10.45], 'FR': [46.22, 2.21],
+            'JP': [36.2, 138.25], 'AU': [-25.27, 133.77], 'CA': [56.13, -106.34], 'IT': [41.87, 12.56],
+            'ES': [40.46, -3.74], 'MX': [23.63, -102.55], 'KR': [35.9, 127.76], 'ZA': [-30.55, 22.93]
         };
 
         const arcsData = attacks.map(attack => {
@@ -70,16 +71,9 @@ async function fetchAnomalies() {
         const anomalies = data.result?.trafficAnomalies || [];
 
         const countryCoords = {
-            'United States': [37.0902, -95.7129],
-            'China': [35.8617, 104.1954],
-            'Russia': [61.5240, 105.3188],
-            'Brazil': [-14.2350, -51.9253],
-            'India': [20.5937, 78.9629],
-            'United Kingdom': [55.3781, -3.4360],
-            'Germany': [51.1657, 10.4515],
-            'France': [46.2276, 2.2137],
-            'Japan': [36.2048, 138.2529],
-            'Australia': [-25.2744, 133.7751]
+            'United States': [37.09, -95.71], 'China': [35.86, 104.19], 'Russia': [61.52, 105.31], 'Brazil': [-14.23, -51.92],
+            'India': [20.59, 78.96], 'United Kingdom': [55.37, -3.43], 'Germany': [51.16, 10.45], 'France': [46.22, 2.21],
+            'Japan': [36.2, 138.25], 'Australia': [-25.27, 133.77], 'Canada': [56.13, -106.34], 'Italy': [41.87, 12.56]
         };
 
         const pointsData = anomalies.map(a => {

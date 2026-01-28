@@ -11,8 +11,18 @@
     <div id="globeViz"></div>
     <div id="info-panel">
         <h1>Global DDoS Monitoring</h1>
+        <div id="demo-badge" style="display: none; background: #ff4d4d; color: white; padding: 2px 5px; font-size: 0.7rem; border-radius: 3px; margin-bottom: 10px; display: inline-block;">DEMO MODE</div>
         <div id="status">Fetching real-time data...</div>
         <div id="attack-list"></div>
+    </div>
+
+    <div id="legend">
+        <h3>About This Dashboard</h3>
+        <p><strong>Arcs:</strong> Represent DDoS traffic flows from an origin to a target.</p>
+        <p><strong>Magnitude:</strong> The percentage of global DDoS traffic volume for that specific vector.</p>
+        <p><strong>Points:</strong> Location of traffic anomalies. Red indicates high-confidence attacks.</p>
+        <hr>
+        <p><small>Note: Cloudflare Radar provides country/ASN level data. For pinpoint IP accuracy, integration with internal logs or a GeoIP provider is required.</small></p>
     </div>
     <script src="script.js"></script>
 </body>

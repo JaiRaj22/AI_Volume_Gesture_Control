@@ -40,3 +40,27 @@ h1 {
     border-left: 3px solid #ff4d4d;
     background: rgba(255, 255, 255, 0.1);
 }
+
+#legend {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 15px;
+    border-radius: 8px;
+    max-width: 250px;
+    font-size: 0.8rem;
+    pointer-events: none;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#legend h3 {
+    margin-top: 0;
+    font-size: 1rem;
+    color: #ff4d4d;
+}
+
+#legend p {
+    margin: 5px 0;
+    line-height: 1.4;
+}

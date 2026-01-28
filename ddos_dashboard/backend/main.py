@@ -38,19 +38,32 @@ async def get_layer7_attacks():
             raise HTTPException(status_code=response.status_code, detail="Error fetching data from Cloudflare Radar")
         return response.json()
 
+import random
+
 @app.get("/attacks/top")
 async def get_top_attacks():
-    if CLOUDFLARE_API_TOKEN == "YOUR_CLOUDFLARE_API_TOKEN":
+    if CLOUDFLARE_API_TOKEN == "PASTE_YOUR_TOKEN_HERE":
         # Return mock data for demonstration
+        countries = [
+            ("US", "United States"), ("CN", "China"), ("RU", "Russia"), ("BR", "Brazil"),
+            ("IN", "India"), ("GB", "United Kingdom"), ("DE", "Germany"), ("FR", "France"),
+            ("JP", "Japan"), ("AU", "Australia"), ("CA", "Canada"), ("IT", "Italy")
+        ]
+
+        mock_attacks = []
+        for _ in range(5):
+            orig = random.choice(countries)
+            dest = random.choice([c for c in countries if c != orig])
+            mock_attacks.append({
+                "originCountryAlpha2": orig[0], "originCountryName": orig[1],
+                "targetCountryAlpha2": dest[0], "targetCountryName": dest[1],
+                "value": round(random.uniform(0.01, 0.20), 4)
+            })
+
         return {
+            "is_mock": True,
             "result": {
-                "top_0": [
-                    {"originCountryAlpha2": "US", "originCountryName": "United States", "targetCountryAlpha2": "CN", "targetCountryName": "China", "value": 0.15},
-                    {"originCountryAlpha2": "CN", "originCountryName": "China", "targetCountryAlpha2": "US", "targetCountryName": "United States", "value": 0.12},
-                    {"originCountryAlpha2": "RU", "originCountryName": "Russia", "targetCountryAlpha2": "GB", "targetCountryName": "United Kingdom", "value": 0.08},
-                    {"originCountryAlpha2": "BR", "originCountryName": "Brazil", "targetCountryAlpha2": "US", "targetCountryName": "United States", "value": 0.05},
-                    {"originCountryAlpha2": "IN", "originCountryName": "India", "targetCountryAlpha2": "DE", "targetCountryName": "Germany", "value": 0.04}
-                ]
+                "top_0": sorted(mock_attacks, key=lambda x: x['value'], reverse=True)
             }
         }
 
@@ -72,14 +85,21 @@ async def get_my_ip():
 
 @app.get("/anomalies")
 async def get_anomalies():
-    if CLOUDFLARE_API_TOKEN == "YOUR_CLOUDFLARE_API_TOKEN":
+    if CLOUDFLARE_API_TOKEN == "PASTE_YOUR_TOKEN_HERE":
+        countries = ["United States", "China", "Germany", "Brazil", "Russia", "India", "Japan", "France"]
+        mock_anomalies = []
+        for _ in range(random.randint(3, 6)):
+            mock_anomalies.append({
+                "locationName": random.choice(countries),
+                "impact": random.randint(1, 5),
+                "confidence": random.randint(1, 5),
+                "type": random.choice(["DDoS", "Traffic Spike", "BGP Hijack"]),
+                "start": "2023-10-01T10:00:00Z"
+            })
         data = {
+            "is_mock": True,
             "result": {
-                "trafficAnomalies": [
-                    {"locationName": "United States", "impact": 5, "confidence": 5, "type": "DDoS", "start": "2023-10-01T10:00:00Z"},
-                    {"locationName": "China", "impact": 4, "confidence": 3, "type": "Traffic Spike", "start": "2023-10-01T11:00:00Z"},
-                    {"locationName": "Germany", "impact": 2, "confidence": 4, "type": "BGP Hijack", "start": "2023-10-01T12:00:00Z"}
-                ]
+                "trafficAnomalies": mock_anomalies
             }
         }
     else:
