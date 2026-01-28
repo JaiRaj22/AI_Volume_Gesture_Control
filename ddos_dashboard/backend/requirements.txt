@@ -1,6 +1,5 @@
 fastapi
 uvicorn
-httpx
 scikit-learn
-pandas
-numpy
+requests
+python-dotenv

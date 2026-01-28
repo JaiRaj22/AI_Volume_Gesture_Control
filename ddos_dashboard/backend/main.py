@@ -47,17 +47,21 @@ async def get_top_attacks():
         countries = [
             ("US", "United States"), ("CN", "China"), ("RU", "Russia"), ("BR", "Brazil"),
             ("IN", "India"), ("GB", "United Kingdom"), ("DE", "Germany"), ("FR", "France"),
-            ("JP", "Japan"), ("AU", "Australia"), ("CA", "Canada"), ("IT", "Italy")
+            ("JP", "Japan"), ("AU", "Australia"), ("CA", "Canada"), ("IT", "Italy"),
+            ("ES", "Spain"), ("MX", "Mexico"), ("KR", "South Korea"), ("ZA", "South Africa")
         ]
 
         mock_attacks = []
-        for _ in range(5):
-            orig = random.choice(countries)
-            dest = random.choice([c for c in countries if c != orig])
+        # Create more variety in mock data
+        available_dest = countries.copy()
+        for i in range(min(len(countries), 10)):
+            orig = countries[i]
+            # Pick a different random destination
+            dest = random.choice([c for c in countries if c[0] != orig[0]])
             mock_attacks.append({
                 "originCountryAlpha2": orig[0], "originCountryName": orig[1],
                 "targetCountryAlpha2": dest[0], "targetCountryName": dest[1],
-                "value": round(random.uniform(0.01, 0.20), 4)
+                "value": round(random.uniform(0.01, 0.15), 4)
             })
 
         return {
@@ -69,11 +73,37 @@ async def get_top_attacks():
 
     async with httpx.AsyncClient() as client:
         headers = {"Authorization": f"Bearer {CLOUDFLARE_API_TOKEN}"}
-        # Fetching top origin/target pairs for layer7 as an example
-        response = await client.get(f"{RADAR_API_BASE}/attacks/layer7/top/attacks", headers=headers)
-        if response.status_code != 200:
-            raise HTTPException(status_code=response.status_code, detail="Error fetching data from Cloudflare Radar")
-        return response.json()
+
+        # Cloudflare Radar API v4 provides top origins and targets separately
+        try:
+            origins_resp = await client.get(f"{RADAR_API_BASE}/attacks/layer7/top/locations/origin", headers=headers)
+            targets_resp = await client.get(f"{RADAR_API_BASE}/attacks/layer7/top/locations/target", headers=headers)
+
+            if origins_resp.status_code != 200 or targets_resp.status_code != 200:
+                raise HTTPException(status_code=500, detail="Error fetching data from Cloudflare Radar")
+
+            origins = origins_resp.json().get('result', {}).get('top_0', [])
+            targets = targets_resp.json().get('result', {}).get('top_0', [])
+
+            # Synthesize attack pairs for visualization since the public API doesn't provide pairs directly
+            synthesized_attacks = []
+            for i in range(min(len(origins), len(targets))):
+                synthesized_attacks.append({
+                    "originCountryAlpha2": origins[i]['clientCountryAlpha2'],
+                    "originCountryName": origins[i]['clientCountryName'],
+                    "targetCountryAlpha2": targets[i]['clientCountryAlpha2'],
+                    "targetCountryName": targets[i]['clientCountryName'],
+                    "value": (origins[i]['value'] + targets[i]['value']) / 2
+                })
+
+            return {
+                "is_mock": False,
+                "result": {
+                    "top_0": synthesized_attacks
+                }
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/my-ip")
 async def get_my_ip():

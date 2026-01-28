@@ -19,20 +19,20 @@ To use this dashboard, you need a Cloudflare API Token:
 6. In **Permissions**, add:
    - `Account | Radar | Read`
 7. Click **Continue to summary** and then **Create Token**.
-8. Copy the token and paste it into `backend/config.py`.
+8. Copy the token.
+9. Copy `backend/.env.example` to `backend/.env` and paste your token: `CLOUDFLARE_API_TOKEN=your_token_here`.
 
 ### 2. Backend Setup
-1. Navigate to the `backend` directory.
-2. Install dependencies: `pip install -r requirements.txt` (or manually install `fastapi uvicorn httpx scikit-learn pandas numpy`).
-3. Run the server: `uvicorn main:app --reload`.
+1. Install dependencies: `pip install -r backend/requirements.txt`
+2. Start the backend from the project root: `python start_backend.py`
 
 ### 3. Frontend Setup
 1. Open `frontend/index.html` in your browser (or use a simple live server).
 
 ## How it works
 - The backend polls Cloudflare Radar's attack and anomaly endpoints.
-- The ML module analyzes the `impact` and `confidence` of anomalies.
-- The frontend renders an interactive globe where red arcs represent DDoS traffic flows.
+- The ML module in `backend/ml_model.py` uses an **IsolationForest** model to classify traffic spikes by comparing them against a baseline of normal activity.
+- The frontend renders an interactive globe where red arcs represent DDoS traffic flows and red points represent traffic anomalies.
 
 ## IP Address Fetching
 Cloudflare Radar API provides aggregated data (ASNs and Locations) rather than specific individual IP addresses for privacy and security reasons.
