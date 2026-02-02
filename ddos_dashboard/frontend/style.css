@@ -23,6 +23,10 @@ h1 {
     color: #ff4d4d;
 }
 
+#demo-badge {
+    display: none;
+}
+
 #status {
     font-size: 0.9rem;
     margin-bottom: 10px;
