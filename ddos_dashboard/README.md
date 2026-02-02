@@ -4,7 +4,7 @@ This project provides a real-time visualization of global DDoS attacks and traff
 
 ## Features
 - **FastAPI Backend**: Fetches real-time data from Cloudflare Radar API.
-- **Machine Learning**: Classifies traffic spikes as anomalies or potential attacks.
+- **Machine Learning**: Classifies traffic spikes using an `IsolationForest` model. On startup, the backend fetches 30 days of historical data from Cloudflare Radar to establish a baseline for its classifications.
 - **Interactive 3D Globe**: Visualizes attack origins and targets globally.
 
 ## Setup Instructions

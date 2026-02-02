@@ -24,18 +24,8 @@ const countryCoords = {
     'NL': [52.13, 5.29], 'SG': [1.35, 103.81], 'MY': [4.21, 101.97], 'PL': [51.91, 19.14],
     'SE': [60.12, 18.64], 'NO': [60.47, 8.46], 'FI': [61.92, 25.74], 'DK': [56.26, 9.5],
     'CH': [46.81, 8.22], 'AT': [47.51, 14.55], 'BE': [50.5, 4.46], 'PT': [39.39, -8.22],
-    'GR': [39.07, 21.82], 'IL': [31.04, 34.85], 'AE': [23.42, 53.84], 'NZ': [-40.9, 174.88]
-};
-
-const countryNameMapping = {
-    'United States': 'US', 'China': 'CN', 'Russia': 'RU', 'Brazil': 'BR',
-    'India': 'IN', 'United Kingdom': 'GB', 'Germany': 'DE', 'France': 'FR',
-    'Japan': 'JP', 'Australia': 'AU', 'Canada': 'CA', 'Italy': 'IT',
-    'Spain': 'ES', 'Mexico': 'MX', 'South Korea': 'KR', 'South Africa': 'ZA',
-    'Netherlands': 'NL', 'Singapore': 'SG', 'Malaysia': 'MY', 'Poland': 'PL',
-    'Sweden': 'SE', 'Norway': 'NO', 'Finland': 'FI', 'Denmark': 'DK',
-    'Switzerland': 'CH', 'Austria': 'AT', 'Belgium': 'BE', 'Portugal': 'PT',
-    'Greece': 'GR', 'Israel': 'IL', 'UAE': 'AE', 'New Zealand': 'NZ'
+    'GR': [39.07, 21.82], 'IL': [31.04, 34.85], 'AE': [23.42, 53.84], 'NZ': [-40.9, 174.88],
+    'IR': [32.42, 53.68], 'IQ': [33.22, 43.67], 'SN': [14.49, -14.45], 'GA': [-0.8, 11.6], 'GN': [9.94, -9.69]
 };
 
 async function fetchAttacks() {
@@ -58,7 +48,7 @@ async function fetchAttacks() {
                 startLng: start[1],
                 endLat: end[0],
                 endLng: end[1],
-                label: `Attack from ${attack.originCountryName} to ${attack.targetCountryName}`
+                label: `${attack.ml_classification}: ${attack.originCountryName} -> ${attack.targetCountryName}`
             };
         });
 
@@ -68,8 +58,9 @@ async function fetchAttacks() {
             document.getElementById('attack-list').innerHTML = '<div class="attack-item">No active attacks reported.</div>';
         } else {
             const listHtml = attacks.slice(0, 10).map(a => `
-                <div class="attack-item">
+                <div class="attack-item" style="border-left-color: ${a.ml_classification.includes('CRITICAL') ? '#ff4d4d' : '#ff9900'}">
                     <strong>${a.originCountryName} &rarr; ${a.targetCountryName}</strong><br>
+                    Classification: ${a.ml_classification}<br>
                     Magnitude: ${(a.value * 100).toFixed(2)}%
                 </div>
             `).join('');
@@ -93,14 +84,17 @@ async function fetchAnomalies() {
         const anomalies = data.result?.trafficAnomalies || [];
 
         const pointsData = anomalies.map(a => {
-            const code = countryNameMapping[a.locationName];
+            const loc = a.locationDetails || a.asnDetails?.location || {};
+            const code = loc.code;
+            const name = loc.name || "Unknown";
             const coords = countryCoords[code] || [Math.random() * 180 - 90, Math.random() * 360 - 180];
+
             return {
                 lat: coords[0],
                 lng: coords[1],
-                size: a.impact / 5,
-                color: a.impact > 3 ? 'red' : 'yellow',
-                label: `${a.locationName}: ${a.ml_classification}`
+                size: 0.5,
+                color: a.status === 'VERIFIED' ? 'red' : 'yellow',
+                label: `${name}: ${a.ml_classification} (${a.type})`
             };
         });
 

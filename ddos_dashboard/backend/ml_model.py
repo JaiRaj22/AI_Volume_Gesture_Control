@@ -1,59 +1,69 @@
 import numpy as np
 from sklearn.ensemble import IsolationForest
+import logging
 
-# Initialize and pre-train the model with baseline data at module level
-# In a real production environment, you would load a model trained on historical logs.
-BASELINE_TRAIN_DATA = np.array([
-    [1, 1], [1.2, 0.8], [0.9, 1.1], [1.5, 1.5], [2, 1],
-    [0.5, 0.5], [1.1, 1.2], [1.3, 0.9], [1.8, 1.6], [2.1, 1.3],
-    [1.1, 1.1], [1.4, 0.9], [0.8, 1.0], [1.6, 1.4], [1.9, 1.1],
-    [0.6, 0.6], [1.2, 1.3], [1.4, 0.8], [1.7, 1.7], [2.2, 1.2]
-])
-MODEL = IsolationForest(contamination=0.1, random_state=42)
-MODEL.fit(BASELINE_TRAIN_DATA)
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def classify_spike(anomaly_data):
+class AnomalyDetector:
+    def __init__(self, contamination=0.1):
+        self.model = IsolationForest(contamination=contamination, random_state=42)
+        self.is_trained = False
+
+    def train(self, data):
+        """
+        Trains the model on historical timeseries data.
+        data: List of float values (e.g., attack volume).
+        """
+        if not data or len(data) < 10:
+            logger.warning("Not enough data to train AnomalyDetector.")
+            return
+
+        try:
+            X = np.array(data).reshape(-1, 1)
+            self.model.fit(X)
+            self.is_trained = True
+            logger.info(f"AnomalyDetector trained on {len(X)} data points.")
+        except Exception as e:
+            logger.error(f"Error training AnomalyDetector: {e}")
+
+    def is_anomaly(self, value):
+        """
+        Checks if a single value is an anomaly based on the trained model.
+        Returns True if anomaly, False otherwise.
+        """
+        if not self.is_trained:
+            return False
+
+        try:
+            X = np.array([[value]])
+            prediction = self.model.predict(X)[0]
+            return prediction == -1
+        except Exception:
+            return False
+
+# Global instances for Layer 3 and Layer 7 attacks
+l3_detector = AnomalyDetector(contamination=0.05)
+l7_detector = AnomalyDetector(contamination=0.05)
+
+def classify_anomaly(value, detector_type="l7"):
     """
-    Classifies a traffic anomaly using a combination of heuristic thresholds
-    and a pre-trained IsolationForest for outlier detection.
+    Classifies a value as an anomaly or not using the specified detector.
     """
-    try:
-        impact = float(anomaly_data.get('impact', 0))
-        confidence = float(anomaly_data.get('confidence', 0))
-    except (TypeError, ValueError):
-        impact = 0
-        confidence = 0
+    detector = l7_detector if detector_type == "l7" else l3_detector
 
-    # Heuristic classification
-    status = "INFO"
-    if impact >= 4 and confidence >= 4:
-        status = "CRITICAL"
-    elif impact >= 3:
-        status = "WARNING"
+    if detector.is_anomaly(value):
+        return "CRITICAL: High-Confidence Attack Spike"
+    return "Normal Activity"
 
-    # Machine Learning Component:
-    # Use the pre-trained IsolationForest to identify if this (impact, confidence)
-    # pair is an outlier compared to the baseline fluctuations.
-    try:
-        # Predict the current anomaly
-        X_test = np.array([[impact, confidence]])
-        prediction = MODEL.predict(X_test)[0] # -1 for anomaly, 1 for normal
-
-        ml_label = "Unusual Activity" if prediction == -1 else "Expected Activity"
-
-        return f"{status}: {ml_label} (Imp: {impact}, Conf: {confidence})"
-    except Exception:
-        return f"{status}: Threshold Reached"
-
-def detect_anomalies_timeseries(series):
+def detect_anomalies_in_series(series):
     """
-    Performs time-series anomaly detection on raw traffic data.
+    Batch detect anomalies in a series.
     """
     if len(series) < 10:
         return [False] * len(series)
 
-    # For time-series, we still fit a temporary model as the baseline is the series itself
-    clf = IsolationForest(contamination=0.1, random_state=42)
-    series_reshaped = np.array(series).reshape(-1, 1)
-    preds = clf.fit_predict(series_reshaped)
+    clf = IsolationForest(contamination=0.05, random_state=42)
+    X = np.array(series).reshape(-1, 1)
+    preds = clf.fit_predict(X)
     return (preds == -1).tolist()
